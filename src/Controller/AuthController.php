@@ -5,6 +5,7 @@ use App\Entity\Opticien;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -38,45 +39,71 @@ class AuthController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em
-    ): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
+    ): JsonResponse {
+        // Get form-data fields
+        $email = $request->request->get('email');
+        $password = $request->request->get('password');
+        $nom = $request->request->get('nom');
+        $prenom = $request->request->get('prenom');
+        $telephone = $request->request->get('telephone');
+        $city = $request->request->get('city');
+        $adresse = $request->request->get('adresse');
+        $companyName = $request->request->get('companyName');
+        $ICE = $request->request->get('ICE');
 
         // Validate required fields
         $requiredFields = ['email', 'password', 'nom', 'prenom'];
         foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
+            if (empty($$field)) {
                 return $this->json(['error' => "$field is required"], 400);
             }
         }
 
         // Check if email already exists
-        if ($em->getRepository(User::class)->findOneBy(['email' => $data['email']])) {
+        if ($em->getRepository(User::class)->findOneBy(['email' => $email])) {
             return $this->json(['error' => 'Email already in use'], 400);
         }
 
-        // Create Opticien entity
+        // Create Opticien
         $opticien = new Opticien();
-        $opticien->setEmail($data['email']);
-        $opticien->setNom($data['nom']);
-        $opticien->setPrenom($data['prenom']);
-        $opticien->setTelephone($data['telephone'] ?? null);
-        $opticien->setCity($data['city'] ?? null);
+        $opticien->setEmail($email)
+            ->setNom($nom)
+            ->setPrenom($prenom)
+            ->setTelephone($telephone)
+            ->setCity($city)
+            ->setAdresse($adresse)
+            ->setCompanyName($companyName)
+            ->setICE($ICE)
+            ->setRoles(['ROLE_OPTICIEN']);
 
         // Hash password
-        $hashedPassword = $passwordHasher->hashPassword($opticien, $data['password']);
+        $hashedPassword = $passwordHasher->hashPassword($opticien, $password);
         $opticien->setPassword($hashedPassword);
 
-        // Assign ROLE_OPTICIEN
-        $opticien->setRoles(['ROLE_OPTICIEN']);
+        // Handle uploaded images (multiple)
+        /** @var UploadedFile[] $files */
+        $files = $request->files->get('images'); // key name: "images[]"
 
-        // Persist to database
+        if ($files) {
+            foreach ($files as $file) {
+                if ($file) {
+                    $image = new \App\Entity\Image();
+                    $image->setImageFile($file);
+                    $image->setOpticien($opticien);
+                    $opticien->addImage($image);
+                    $em->persist($image);
+                }
+            }
+        }
+
+        // Persist opticien
         $em->persist($opticien);
         $em->flush();
 
         return $this->json([
             'message' => 'Opticien registered successfully',
-            'id' => $opticien->getId()
+            'id' => $opticien->getId(),
+            'images' => array_map(fn($img) => $img->getImageName(), $opticien->getImages()->toArray())
         ], 201);
     }
 
