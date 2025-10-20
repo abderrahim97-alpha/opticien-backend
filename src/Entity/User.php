@@ -4,7 +4,12 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -17,11 +22,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['opticien:read', 'opticien:write'])]
     private ?string $email = null;
 
     /**
@@ -36,7 +43,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    public function getId(): ?int
+    /**
+     * @var Collection<int, Monture>
+     */
+    #[ORM\OneToMany(targetEntity: Monture::class, mappedBy: 'owner')]
+    private Collection $montures;
+
+    public function __construct()
+    {
+        $this->montures = new ArrayCollection();
+    }
+
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -115,5 +133,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // @deprecated, to be removed when upgrading to Symfony 8
+    }
+
+    /**
+     * @return Collection<int, Monture>
+     */
+    public function getMontures(): Collection
+    {
+        return $this->montures;
+    }
+
+    public function addMonture(Monture $monture): static
+    {
+        if (!$this->montures->contains($monture)) {
+            $this->montures->add($monture);
+            $monture->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMonture(Monture $monture): static
+    {
+        if ($this->montures->removeElement($monture)) {
+            // set the owning side to null (unless already changed)
+            if ($monture->getOwner() === $this) {
+                $monture->setOwner(null);
+            }
+        }
+
+        return $this;
     }
 }

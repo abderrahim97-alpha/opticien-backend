@@ -63,7 +63,6 @@ class Opticien extends User
         $this->images = new ArrayCollection();
     }
 
-
     public function getNom(): ?string
     {
         return $this->nom;

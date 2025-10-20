@@ -35,7 +35,7 @@ class Image
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['image:read', 'opticien:read'])]
+    #[Groups(['image:read', 'opticien:read', 'monture:read'])]
     private ?string $imageName = null;
 
     #[ORM\Column(nullable: true)]
@@ -43,13 +43,18 @@ class Image
     private ?\DateTimeImmutable  $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'images')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['image:read', 'image:write'])]
     private ?Opticien $opticien = null;
 
     #[Vich\UploadableField(mapping: 'opticien_images', fileNameProperty: 'imageName')]
     #[Groups(['image:write'])]
     private ?File $imageFile = null;
+
+    #[ORM\ManyToOne(inversedBy: 'images')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['image:read', 'image:write'])]
+    private ?Monture $monture = null;
 
     public function setImageFile(?File $imageFile = null): void
     {
@@ -101,6 +106,18 @@ class Image
     public function setOpticien(?Opticien $opticien): static
     {
         $this->opticien = $opticien;
+
+        return $this;
+    }
+
+    public function getMonture(): ?Monture
+    {
+        return $this->monture;
+    }
+
+    public function setMonture(?Monture $monture): static
+    {
+        $this->monture = $monture;
 
         return $this;
     }
