@@ -8,11 +8,13 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Enum\MontureStatus;
 use App\Repository\MontureRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ApiResource(
@@ -58,6 +60,10 @@ class Monture
     #[Groups(['monture:read', 'monture:write'])]
     private ?int $stock = null;
 
+    #[ORM\Column(type: 'string', enumType: MontureStatus::class, nullable: true)]
+    #[Groups(['monture:read', 'monture:write'])]
+    private MontureStatus $status = MontureStatus::PENDING;
+
     #[ORM\Column]
     #[Groups(['monture:read'])]
     private ?\DateTimeImmutable $createdAt = null;
@@ -69,6 +75,7 @@ class Monture
     #[ORM\ManyToOne(inversedBy: 'montures')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['monture:read', 'monture:write'])]
+    #[MaxDepth(1)]
     private ?User $owner = null;
 
     /**
@@ -85,6 +92,8 @@ class Monture
         $this->createdAt = new \DateTimeImmutable();
         // Initialize updatedAt as null; will be set on first update
         $this->updatedAt = null;
+        // Par défaut en attente
+        $this->status = MontureStatus::PENDING;
     }
 
     public function getId(): ?int
@@ -154,6 +163,18 @@ class Monture
         $this->stock = $stock;
         $this->updateTimestamp();
 
+        return $this;
+    }
+
+    public function getStatus(): MontureStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(MontureStatus $status): static
+    {
+        $this->status = $status;
+        $this->updateTimestamp();
         return $this;
     }
 
