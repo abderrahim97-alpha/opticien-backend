@@ -24,11 +24,11 @@ class Opticien extends User
 {
 
     #[ORM\Column(length: 255)]
-    #[Groups(['opticien:read', 'opticien:write', 'image:read'])]
+    #[Groups(['opticien:read', 'opticien:write', 'image:read', 'monture:read'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['opticien:read', 'opticien:write', 'image:read'])]
+    #[Groups(['opticien:read', 'opticien:write', 'image:read', 'monture:read'])]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 20, nullable: true)]

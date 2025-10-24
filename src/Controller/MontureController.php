@@ -124,7 +124,6 @@ class MontureController extends AbstractController
                 return $this->json(['error' => 'Access denied'], 403);
             }
 
-            // ========== AJOUTEZ CETTE PARTIE ==========
             // Suppression des images existantes
             $imagesToDelete = $request->request->all('imagesToDelete');
             if (!empty($imagesToDelete)) {
