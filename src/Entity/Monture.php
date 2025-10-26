@@ -60,7 +60,7 @@ class Monture
     #[Groups(['monture:read', 'monture:write'])]
     private ?int $stock = null;
 
-    #[ORM\Column(type: 'string', enumType: MontureStatus::class, nullable: true)]
+    #[ORM\Column(type: 'string', nullable: true, enumType: MontureStatus::class)]
     #[Groups(['monture:read', 'monture:write'])]
     private MontureStatus $status = MontureStatus::PENDING;
 

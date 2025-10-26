@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use App\Enum\OpticienStatus;
 use App\Repository\OpticienRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -35,6 +36,9 @@ class Opticien extends User
     #[Groups(['opticien:read', 'opticien:write'])]
     private ?string $telephone = null;
 
+    #[ORM\Column(type: 'string', nullable: true, enumType: OpticienStatus::class)]
+    #[Groups(['opticien:read', 'opticien:write'])]
+    private OpticienStatus $status = OpticienStatus::PENDING;
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['opticien:read', 'opticien:write'])]
     private ?string $city = null;
@@ -42,7 +46,7 @@ class Opticien extends User
     /**
      * @var Collection<int, Image>
      */
-    #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'opticien', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'opticien', cascade: ['persist', 'remove'] ,orphanRemoval: true)]
     #[Groups(['opticien:read'])]
     private Collection $images;
 
@@ -60,6 +64,7 @@ class Opticien extends User
 
     public function __construct()
     {
+        $this->status = OpticienStatus::PENDING; // Par défaut en attente
         $this->images = new ArrayCollection();
     }
 
@@ -96,6 +101,17 @@ class Opticien extends User
     {
         $this->telephone = $telephone;
 
+        return $this;
+    }
+
+    public function getStatus(): OpticienStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(OpticienStatus $status): static
+    {
+        $this->status = $status;
         return $this;
     }
 
