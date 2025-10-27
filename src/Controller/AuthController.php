@@ -3,6 +3,8 @@ namespace App\Controller;
 
 use App\Entity\Opticien;
 use App\Entity\User;
+use App\Enum\OpticienStatus;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -38,7 +40,8 @@ class AuthController extends AbstractController
     public function registerOpticien(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        EmailService $emailService
     ): JsonResponse {
         // Get form-data fields
         $email = $request->request->get('email');
@@ -74,7 +77,8 @@ class AuthController extends AbstractController
             ->setAdresse($adresse)
             ->setCompanyName($companyName)
             ->setICE($ICE)
-            ->setRoles(['ROLE_OPTICIEN']);
+            ->setRoles(['ROLE_OPTICIEN'])
+            ->setStatus(OpticienStatus::PENDING); // IMPORTANT: Définir le statut à PENDING
 
         // Hash password
         $hashedPassword = $passwordHasher->hashPassword($opticien, $password);
@@ -82,7 +86,7 @@ class AuthController extends AbstractController
 
         // Handle uploaded images (multiple)
         /** @var UploadedFile[] $files */
-        $files = $request->files->get('images'); // key name: "images[]"
+        $files = $request->files->get('images');
 
         if ($files) {
             foreach ($files as $file) {
@@ -100,9 +104,20 @@ class AuthController extends AbstractController
         $em->persist($opticien);
         $em->flush();
 
+        // Envoyer l'email de confirmation
+        try {
+            $emailService->sendAccountCreatedEmail(
+                $opticien->getEmail(),
+                $opticien->getPrenom() . ' ' . $opticien->getNom()
+            );
+        } catch (\Exception $e) {
+            error_log('Email send error: ' . $e->getMessage());
+        }
+
         return $this->json([
-            'message' => 'Opticien registered successfully',
+            'message' => 'Opticien registered successfully. Un email de confirmation vous a été envoyé.',
             'id' => $opticien->getId(),
+            'status' => 'pending',
             'images' => array_map(fn($img) => $img->getImageName(), $opticien->getImages()->toArray())
         ], 201);
     }

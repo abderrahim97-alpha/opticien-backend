@@ -279,11 +279,25 @@ class MontureController extends AbstractController
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
-        return $this->json([
+        $response = [
             'id' => $user->getId()->toString(),
             'email' => $user->getEmail(),
             'roles' => $user->getRoles()
-        ]);
+        ];
+
+        // Si c'est un opticien, ajouter les infos spécifiques
+        if ($user instanceof \App\Entity\Opticien) {
+            $response['nom'] = $user->getNom();
+            $response['prenom'] = $user->getPrenom();
+            $response['telephone'] = $user->getTelephone();
+            $response['city'] = $user->getCity();
+            $response['status'] = $user->getStatus()->value;
+            $response['companyName'] = $user->getCompanyName();
+            $response['adresse'] = $user->getAdresse();
+            $response['ICE'] = $user->getICE();
+        }
+
+        return $this->json($response);
     }
 }
 
