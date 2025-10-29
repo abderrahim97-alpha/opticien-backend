@@ -37,5 +37,8 @@ security:
         - { path: ^/api/login_check, roles: PUBLIC_ACCESS }
         - { path: ^/api/register-opticien, roles: PUBLIC_ACCESS }
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/password/forgot, roles: PUBLIC_ACCESS }
+        - { path: ^/api/password/verify-token, roles: PUBLIC_ACCESS }
+        - { path: ^/api/password/reset, roles: PUBLIC_ACCESS }
         - { path: ^/api/docs.jsonopenapi, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

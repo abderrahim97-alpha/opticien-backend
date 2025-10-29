@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Image;
 use App\Entity\Opticien;
 use App\Entity\User;
 use App\Enum\OpticienStatus;
@@ -43,7 +44,7 @@ class AuthController extends AbstractController
         EntityManagerInterface $em,
         EmailService $emailService
     ): JsonResponse {
-        // Get form-data fields
+        // --- Champs de formulaire ---
         $email = $request->request->get('email');
         $password = $request->request->get('password');
         $nom = $request->request->get('nom');
@@ -54,7 +55,7 @@ class AuthController extends AbstractController
         $companyName = $request->request->get('companyName');
         $ICE = $request->request->get('ICE');
 
-        // Validate required fields
+        // --- Validation ---
         $requiredFields = ['email', 'password', 'nom', 'prenom'];
         foreach ($requiredFields as $field) {
             if (empty($$field)) {
@@ -62,12 +63,11 @@ class AuthController extends AbstractController
             }
         }
 
-        // Check if email already exists
         if ($em->getRepository(User::class)->findOneBy(['email' => $email])) {
             return $this->json(['error' => 'Email already in use'], 400);
         }
 
-        // Create Opticien
+        // --- Création de l'opticien ---
         $opticien = new Opticien();
         $opticien->setEmail($email)
             ->setNom($nom)
@@ -78,33 +78,36 @@ class AuthController extends AbstractController
             ->setCompanyName($companyName)
             ->setICE($ICE)
             ->setRoles(['ROLE_OPTICIEN'])
-            ->setStatus(OpticienStatus::PENDING); // IMPORTANT: Définir le statut à PENDING
+            ->setStatus(\App\Enum\OpticienStatus::PENDING);
 
-        // Hash password
         $hashedPassword = $passwordHasher->hashPassword($opticien, $password);
         $opticien->setPassword($hashedPassword);
 
-        // Handle uploaded images (multiple)
+        // --- Persist de base ---
+        $em->persist($opticien);
+        $em->flush(); // ⚡ flush ici pour obtenir un ID pour le lien opticien-image
+
+        // --- Gestion des images ---
         /** @var UploadedFile[] $files */
         $files = $request->files->get('images');
 
-        if ($files) {
+        if ($files && is_iterable($files)) {
             foreach ($files as $file) {
-                if ($file) {
+                if ($file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
                     $image = new \App\Entity\Image();
-                    $image->setImageFile($file);
+                    $image->setImageFile($file); // VichUploader prendra le relais
                     $image->setOpticien($opticien);
                     $opticien->addImage($image);
+
+                    // Persiste l'image (elle sera uploadée à flush)
                     $em->persist($image);
                 }
             }
         }
 
-        // Persist opticien
-        $em->persist($opticien);
-        $em->flush();
+        $em->flush(); // ⚡ ici VichUploaderBundle déclenche les events et remplit imageName
 
-        // Envoyer l'email de confirmation
+        // --- Envoi d’email (optionnel) ---
         try {
             $emailService->sendAccountCreatedEmail(
                 $opticien->getEmail(),
@@ -114,12 +117,14 @@ class AuthController extends AbstractController
             error_log('Email send error: ' . $e->getMessage());
         }
 
+        // --- Réponse ---
         return $this->json([
-            'message' => 'Opticien registered successfully. Un email de confirmation vous a été envoyé.',
+            'message' => 'Opticien enregistré avec succès. Un email de confirmation a été envoyé.',
             'id' => $opticien->getId(),
-            'status' => 'pending',
+            'status' => $opticien->getStatus()->value,
             'images' => array_map(fn($img) => $img->getImageName(), $opticien->getImages()->toArray())
         ], 201);
     }
+
 
 }

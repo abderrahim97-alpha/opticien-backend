@@ -14,6 +14,37 @@ class EmailService
         $this->mailer = $mailer;
     }
 
+    public function sendPasswordResetEmail(string $to, string $name, string $token): void
+    {
+        $resetUrl = "http://localhost:3000/reset-password/{$token}";
+
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to($to)
+            ->subject('🔐 Réinitialisation de votre mot de passe')
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #3b82f6;'>Réinitialisation de mot de passe</h1>
+                <p>Bonjour {$name},</p>
+                <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
+                <div style='background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0;'><strong>⚠️ Ce lien est valide pendant 1 heure seulement.</strong></p>
+                </div>
+                <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
+                <br>
+                <a href='{$resetUrl}' style='background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    Réinitialiser mon mot de passe
+                </a>
+                <br><br>
+                <p style='color: #6b7280; font-size: 14px;'>Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email.</p>
+                <br>
+                <p>Cordialement,<br><strong>L'équipe Optique</strong></p>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
+
     public function sendAccountCreatedEmail(string $to, string $name): void
     {
         $email = (new Email())
