@@ -39,11 +39,30 @@ class StatsController extends AbstractController
                     'pending' => $opticienRepo->count(['status' => OpticienStatus::PENDING]),
                     'rejected' => $opticienRepo->count(['status' => OpticienStatus::REJECTED]),
                 ],
+                'recentOpticiens' => array_map(
+                    fn($o) => [
+                        'id' => $o->getId()->toRfc4122(), // Convertir Uuid en string
+                        'nom' => $o->getNom() ?? '',
+                        'prenom' => $o->getPrenom() ?? '',
+                        'email' => $o->getEmail() ?? '',
+                        'companyName' => $o->getCompanyName() ?? '',
+                        'city' => $o->getCity() ?? '',
+                        'status' => $o->getStatus()->value,
+                    ],
+                    $opticienRepo->findBy([], ['id' => 'DESC'], 5)
+                ),
                 'recentMontures' => array_map(
                     fn($m) => [
                         'id' => $m->getId(),
                         'name' => $m->getName(),
+                        'brand' => $m->getBrand() ?? '',
+                        'price' => $m->getPrice() ?? 0,
                         'status' => $m->getStatus()->value,
+                        'owner' => $m->getOwner() ? [
+                            'id' => $m->getOwner()->getId()->toRfc4122(), // Convertir Uuid en string
+                            'nom' => $m->getOwner() instanceof \App\Entity\Opticien ? $m->getOwner()->getNom() : '',
+                            'prenom' => $m->getOwner() instanceof \App\Entity\Opticien ? $m->getOwner()->getPrenom() : '',
+                        ] : null,
                         'createdAt' => $m->getCreatedAt()->format('Y-m-d H:i:s'),
                     ],
                     $montureRepo->findBy([], ['createdAt' => 'DESC'], 5)
@@ -62,6 +81,8 @@ class StatsController extends AbstractController
                     fn($m) => [
                         'id' => $m->getId(),
                         'name' => $m->getName(),
+                        'brand' => $m->getBrand() ?? '',
+                        'price' => $m->getPrice() ?? 0,
                         'status' => $m->getStatus()->value,
                         'createdAt' => $m->getCreatedAt()->format('Y-m-d H:i:s'),
                     ],
