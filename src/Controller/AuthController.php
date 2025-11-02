@@ -44,7 +44,7 @@ class AuthController extends AbstractController
         EntityManagerInterface $em,
         EmailService $emailService
     ): JsonResponse {
-        // --- Champs de formulaire ---
+
         $email = $request->request->get('email');
         $password = $request->request->get('password');
         $nom = $request->request->get('nom');
@@ -78,7 +78,7 @@ class AuthController extends AbstractController
             ->setCompanyName($companyName)
             ->setICE($ICE)
             ->setRoles(['ROLE_OPTICIEN'])
-            ->setStatus(\App\Enum\OpticienStatus::PENDING);
+            ->setStatus(OpticienStatus::PENDING);
 
         $hashedPassword = $passwordHasher->hashPassword($opticien, $password);
         $opticien->setPassword($hashedPassword);
@@ -93,8 +93,8 @@ class AuthController extends AbstractController
 
         if ($files && is_iterable($files)) {
             foreach ($files as $file) {
-                if ($file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
-                    $image = new \App\Entity\Image();
+                if ($file instanceof UploadedFile) {
+                    $image = new Image();
                     $image->setImageFile($file); // VichUploader prendra le relais
                     $image->setOpticien($opticien);
                     $opticien->addImage($image);
@@ -107,7 +107,6 @@ class AuthController extends AbstractController
 
         $em->flush(); // ⚡ ici VichUploaderBundle déclenche les events et remplit imageName
 
-        // --- Envoi d’email (optionnel) ---
         try {
             $emailService->sendAccountCreatedEmail(
                 $opticien->getEmail(),

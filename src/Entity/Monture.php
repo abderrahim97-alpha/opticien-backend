@@ -8,7 +8,11 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Enum\MontureMateriau;
 use App\Enum\MontureStatus;
+use App\Enum\MontureType;
+use App\Enum\MontureGenre;
+use App\Enum\MontureForme;
 use App\Repository\MontureRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -77,6 +81,26 @@ class Monture
     #[Groups(['monture:read', 'monture:write'])]
     #[MaxDepth(1)]
     private ?User $owner = null;
+
+    #[ORM\Column(type: 'string', nullable: true, enumType: MontureType::class)]
+    #[Groups(['monture:read', 'monture:write'])]
+    private ?MontureType $type = null;
+
+    #[ORM\Column(type: 'string', nullable: true, enumType: MontureGenre::class)]
+    #[Groups(['monture:read', 'monture:write'])]
+    private ?MontureGenre $genre = null;
+
+    #[ORM\Column(type: 'string', nullable: true, enumType: MontureForme::class)]
+    #[Groups(['monture:read', 'monture:write'])]
+    private ?MontureForme $forme = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['monture:read', 'monture:write'])]
+    private ?string $couleur = null;
+
+    #[ORM\Column(type: 'string', nullable: true, enumType: MontureMateriau::class)]
+    #[Groups(['monture:read', 'monture:write'])]
+    private ?MontureMateriau $materiau = null;
 
     /**
      * @var Collection<int, Image>
@@ -235,6 +259,104 @@ class Monture
             }
         }
 
+        return $this;
+    }
+    /**
+     * Décrémenter le stock (lors d'une commande)
+     *
+     * @throws \Exception Si stock insuffisant
+     */
+    public function decrementStock(int $quantity): void
+    {
+        if ($this->stock === null || $this->stock < $quantity) {
+            throw new \Exception(
+                "Stock insuffisant pour la monture '{$this->name}'. " .
+                "Stock disponible: {$this->stock}, demandé: {$quantity}"
+            );
+        }
+
+        $this->stock -= $quantity;
+        $this->updateTimestamp();
+    }
+
+    /**
+     * Incrémenter le stock (lors d'un retour/refus de commande)
+     */
+    public function incrementStock(int $quantity): void
+    {
+        if ($this->stock === null) {
+            $this->stock = 0;
+        }
+
+        $this->stock += $quantity;
+        $this->updateTimestamp();
+    }
+
+    /**
+     * Vérifier si le stock est suffisant
+     */
+    public function hasEnoughStock(int $quantity): bool
+    {
+        return $this->stock !== null && $this->stock >= $quantity;
+    }
+
+    public function getType(): ?MontureType
+    {
+        return $this->type;
+    }
+
+    public function setType(?MontureType $type): static
+    {
+        $this->type = $type;
+        $this->updateTimestamp();
+        return $this;
+    }
+
+    public function getGenre(): ?MontureGenre
+    {
+        return $this->genre;
+    }
+
+    public function setGenre(?MontureGenre $genre): static
+    {
+        $this->genre = $genre;
+        $this->updateTimestamp();
+        return $this;
+    }
+
+    public function getForme(): ?MontureForme
+    {
+        return $this->forme;
+    }
+
+    public function setForme(?MontureForme $forme): static
+    {
+        $this->forme = $forme;
+        $this->updateTimestamp();
+        return $this;
+    }
+
+    public function getCouleur(): ?string
+    {
+        return $this->couleur;
+    }
+
+    public function setCouleur(?string $couleur): static
+    {
+        $this->couleur = $couleur;
+        $this->updateTimestamp();
+        return $this;
+    }
+
+    public function getMateriau(): ?MontureMateriau
+    {
+        return $this->materiau;
+    }
+
+    public function setMateriau(?MontureMateriau $materiau): static
+    {
+        $this->materiau = $materiau;
+        $this->updateTimestamp();
         return $this;
     }
 }

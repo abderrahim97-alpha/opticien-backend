@@ -115,4 +115,119 @@ class EmailService
 
         $this->mailer->send($email);
     }
+    public function sendCommandeCreatedToAcheteur(string $to, string $name, int $commandeId): void
+    {
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to($to)
+            ->subject('🛒 Commande créée - En attente de validation')
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #3b82f6;'>Commande #{$commandeId} créée</h1>
+                <p>Bonjour {$name},</p>
+                <p>Votre commande a été créée avec succès !</p>
+                <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0;'><strong>⏳ Statut :</strong> En attente de vérification physique</p>
+                </div>
+                <p>Notre équipe va vérifier l'authenticité des montures commandées.</p>
+                <p>Vous recevrez un email dès validation.</p>
+                <br>
+                <p>Cordialement,<br><strong>L'équipe Optique</strong></p>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
+
+    public function sendCommandeCreatedToAdmin(int $commandeId, string $acheteurName): void
+    {
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to('abderrahim.abd1997@gmail.ma') // Ton email admin
+            ->subject("🔔 Nouvelle commande #{$commandeId} à valider")
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #f59e0b;'>Nouvelle commande à vérifier</h1>
+                <p><strong>Commande #{$commandeId}</strong></p>
+                <p><strong>Acheteur :</strong> {$acheteurName}</p>
+                <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0;'><strong>⚠️ Action requise :</strong> Vérification physique des montures</p>
+                </div>
+                <br>
+                <a href='http://localhost:3000/admin/commandes/{$commandeId}' style='background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    Voir la commande
+                </a>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
+
+    public function sendCommandeValidatedToAcheteur(string $to, string $name, int $commandeId): void
+    {
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to($to)
+            ->subject('✅ Commande validée - Expédition en cours')
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #10b981;'>Commande #{$commandeId} validée !</h1>
+                <p>Bonjour {$name},</p>
+                <div style='background: #d1fae5; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0;'><strong>✅ Votre commande a été validée !</strong></p>
+                </div>
+                <p>Les montures ont été vérifiées et sont en cours d'expédition vers votre magasin.</p>
+                <br>
+                <p>Cordialement,<br><strong>L'équipe Optique</strong></p>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
+
+    public function sendCommandeRefusedToAcheteur(string $to, string $name, int $commandeId, string $raison): void
+    {
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to($to)
+            ->subject('❌ Commande refusée')
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #ef4444;'>Commande #{$commandeId} refusée</h1>
+                <p>Bonjour {$name},</p>
+                <p>Malheureusement, votre commande n'a pas pu être validée :</p>
+                <div style='background: #fee2e2; padding: 15px; border-left: 4px solid #ef4444; margin: 20px 0;'>
+                    <p style='margin: 0; color: #991b1b;'><strong>Raison :</strong> {$raison}</p>
+                </div>
+                <p>Les montures seront retournées aux vendeurs et votre stock sera restauré.</p>
+                <br>
+                <p>Cordialement,<br><strong>L'équipe Optique</strong></p>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
+
+    public function sendCommandeRefusedToVendeur(string $to, string $name, int $commandeId): void
+    {
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to($to)
+            ->subject('↩️ Retour de montures - Commande refusée')
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #f59e0b;'>Retour de montures</h1>
+                <p>Bonjour {$name},</p>
+                <p>Une commande concernant vos montures a été refusée après vérification.</p>
+                <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0;'><strong>↩️ Les montures vous seront retournées</strong></p>
+                </div>
+                <p>Votre stock a été restauré automatiquement.</p>
+                <br>
+                <p>Cordialement,<br><strong>L'équipe Optique</strong></p>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
 }

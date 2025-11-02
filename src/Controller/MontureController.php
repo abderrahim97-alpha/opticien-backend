@@ -6,6 +6,10 @@ use App\Entity\Monture;
 use App\Entity\Image;
 use App\Entity\User;
 use App\Enum\MontureStatus;
+use App\Enum\MontureType;
+use App\Enum\MontureGenre;
+use App\Enum\MontureForme;
+use App\Enum\MontureMateriau;
 use App\Repository\MontureRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,12 +40,17 @@ class MontureController extends AbstractController
             return $this->json(['error' => 'Invalid user type'], 401);
         }
 
-        // Get form-data fields
         $name = $request->request->get('name');
         $description = $request->request->get('description');
         $price = $request->request->get('price');
         $brand = $request->request->get('brand');
         $stock = $request->request->get('stock');
+        $type = $request->request->get('type');
+        $genre = $request->request->get('genre');
+        $forme = $request->request->get('forme');
+        $couleur = $request->request->get('couleur');
+        $materiau = $request->request->get('materiau');
+
 
         // Validate required fields
         $requiredFields = ['name', 'price'];
@@ -64,6 +73,28 @@ class MontureController extends AbstractController
             ->setBrand($brand)
             ->setStock($stock ? (int)$stock : 0)
             ->setOwner($user);
+
+        // ========== SET NEW FIELDS ==========
+        if ($type && MontureType::tryFrom($type)) {
+            $monture->setType(MontureType::from($type));
+        }
+
+        if ($genre && MontureGenre::tryFrom($genre)) {
+            $monture->setGenre(MontureGenre::from($genre));
+        }
+
+        if ($forme && MontureForme::tryFrom($forme)) {
+            $monture->setForme(MontureForme::from($forme));
+        }
+
+        if ($couleur) {
+            $monture->setCouleur($couleur);
+        }
+
+        if ($materiau && MontureMateriau::tryFrom($materiau)) {
+            $monture->setMateriau(MontureMateriau::from($materiau));
+        }
+        // ====================================
 
         // Définir le statut selon le rôle
         if ($this->isGranted('ROLE_ADMIN')) {
@@ -97,6 +128,11 @@ class MontureController extends AbstractController
             'id' => $monture->getId(),
             'name' => $monture->getName(),
             'price' => $monture->getPrice(),
+            'type' => $monture->getType()?->value,
+            'genre' => $monture->getGenre()?->value,
+            'forme' => $monture->getForme()?->value,
+            'couleur' => $monture->getCouleur(),
+            'materiau' => $monture->getMateriau()?->value,
             'images' => array_map(fn($img) => $img->getImageName(), $monture->getImages()->toArray())
         ], 201);
     }
@@ -143,7 +179,6 @@ class MontureController extends AbstractController
                     }
                 }
             }
-            // ========== FIN DE L'AJOUT ==========
 
             // Récupération des champs
             $name = $request->request->get('name');
@@ -151,6 +186,14 @@ class MontureController extends AbstractController
             $price = $request->request->get('price');
             $brand = $request->request->get('brand');
             $stock = $request->request->get('stock');
+
+            // ========== GET NEW FIELDS ==========
+            $type = $request->request->get('type');
+            $genre = $request->request->get('genre');
+            $forme = $request->request->get('forme');
+            $couleur = $request->request->get('couleur');
+            $materiau = $request->request->get('materiau');
+            // ====================================
 
             // Mise à jour des champs
             if ($name) {
@@ -169,6 +212,44 @@ class MontureController extends AbstractController
                 $monture->setStock((int)$stock);
             }
 
+            // ========== UPDATE NEW FIELDS ==========
+            if ($type !== null) {
+                if ($type === '' || $type === 'null') {
+                    $monture->setType(null);
+                } elseif (MontureType::tryFrom($type)) {
+                    $monture->setType(MontureType::from($type));
+                }
+            }
+
+            if ($genre !== null) {
+                if ($genre === '' || $genre === 'null') {
+                    $monture->setGenre(null);
+                } elseif (MontureGenre::tryFrom($genre)) {
+                    $monture->setGenre(MontureGenre::from($genre));
+                }
+            }
+
+            if ($forme !== null) {
+                if ($forme === '' || $forme === 'null') {
+                    $monture->setForme(null);
+                } elseif (MontureForme::tryFrom($forme)) {
+                    $monture->setForme(MontureForme::from($forme));
+                }
+            }
+
+            if ($couleur !== null) {
+                $monture->setCouleur($couleur === '' ? null : $couleur);
+            }
+
+            if ($materiau !== null) {
+                if ($materiau === '' || $materiau === 'null') {
+                    $monture->setMateriau(null);
+                } elseif (MontureMateriau::tryFrom($materiau)) {
+                    $monture->setMateriau(MontureMateriau::from($materiau));
+                }
+            }
+            // =========================================
+
             // Gestion des nouvelles images
             $files = $request->files->get('images');
             if ($files && is_array($files)) {
@@ -183,7 +264,7 @@ class MontureController extends AbstractController
                 }
             }
 
-            $em->flush(); // VichUploader supprimera automatiquement les fichiers physiques
+            $em->flush();
 
             return $this->json([
                 'message' => 'Monture mise à jour avec succès',
@@ -194,6 +275,11 @@ class MontureController extends AbstractController
                     'brand' => $monture->getBrand(),
                     'stock' => $monture->getStock(),
                     'description' => $monture->getDescription(),
+                    'type' => $monture->getType()?->value,
+                    'genre' => $monture->getGenre()?->value,
+                    'forme' => $monture->getForme()?->value,
+                    'couleur' => $monture->getCouleur(),
+                    'materiau' => $monture->getMateriau()?->value,
                     'updatedAt' => $monture->getUpdatedAt()?->format('Y-m-d H:i:s'),
                     'imagesCount' => $monture->getImages()->count(),
                     'images' => array_map(
@@ -300,4 +386,3 @@ class MontureController extends AbstractController
         return $this->json($response);
     }
 }
-
