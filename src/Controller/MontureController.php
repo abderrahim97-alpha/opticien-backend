@@ -103,6 +103,9 @@ class MontureController extends AbstractController
             $monture->setStatus(MontureStatus::PENDING); // Opticien: en attente
         }
 
+        $em->persist($monture);
+        $em->flush();
+
         // Handle uploaded images (multiple)
         /** @var UploadedFile[] $files */
         $files = $request->files->get('images'); // key name: "images[]"
@@ -117,11 +120,9 @@ class MontureController extends AbstractController
                     $em->persist($image);
                 }
             }
+            $em->flush();
         }
 
-        // Persist monture
-        $em->persist($monture);
-        $em->flush();
 
         return $this->json([
             'message' => 'Monture created successfully',

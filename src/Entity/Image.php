@@ -14,6 +14,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 
 #[ORM\Entity(repositoryClass: ImageRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[Vich\Uploadable]
 #[ApiResource(
     operations: [
@@ -47,7 +48,7 @@ class Image
     #[Groups(['image:read', 'image:write'])]
     private ?Opticien $opticien = null;
 
-    #[Vich\UploadableField(mapping: 'opticien_images', fileNameProperty: 'imageName')]
+    #[Vich\UploadableField(mapping: 'entity_images', fileNameProperty: 'imageName')]
     #[Groups(['image:write'])]
     private ?File $imageFile = null;
 
