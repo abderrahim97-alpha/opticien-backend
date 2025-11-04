@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/orders')]
-#[IsGranted('ROLE_OPTICIEN')]
+#[IsGranted('ROLE_USER')]
 class CommandeController extends AbstractController
 {
     public function __construct(
@@ -27,6 +27,7 @@ class CommandeController extends AbstractController
      * Créer une nouvelle commande (depuis le panier)
      */
     #[Route('/create', methods: ['POST'])] // ← Route devient /api/orders/create
+    #[IsGranted('ROLE_OPTICIEN')]
     public function create(Request $request): JsonResponse
     {
         try {
@@ -123,23 +124,28 @@ class CommandeController extends AbstractController
     /**
      * Liste de MES ventes (montures vendues)
      */
-    #[Route('/my-sales', methods: ['GET'])] // ← Route devient /api/orders/my-sales
+    #[Route('/my-sales', methods: ['GET'])]
     public function mesVentes(): JsonResponse
     {
         $vendeur = $this->getUser();
 
-        // Récupérer tous les CommandeItem où je suis le vendeur
-        $items = $this->entityManager->getRepository(CommandeItem::class)
+        // Autoriser uniquement les rôles Admin ou Opticien
+        if (!$this->isGranted('ROLE_OPTICIEN') && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json(['error' => 'Accès refusé'], 403);
+        }
+
+        // Récupérer les items dont je suis le vendeur
+        $items = $this->entityManager
+            ->getRepository(CommandeItem::class)
             ->findBy(['vendeur' => $vendeur]);
 
-        // Grouper par commande
         $ventes = [];
         foreach ($items as $item) {
             $commandeId = $item->getCommande()->getId();
             if (!isset($ventes[$commandeId])) {
                 $ventes[$commandeId] = [
                     'commande' => $item->getCommande(),
-                    'items' => []
+                    'items' => [],
                 ];
             }
             $ventes[$commandeId]['items'][] = $item;

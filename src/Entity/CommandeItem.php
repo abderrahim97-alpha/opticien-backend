@@ -27,10 +27,10 @@ class CommandeItem
     #[Groups(['commande:read', 'commande:write'])]
     private ?Monture $monture = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['commande:read'])]
-    private ?Opticien $vendeur = null;
+    private ?User $vendeur = null;
 
     #[ORM\Column]
     #[Groups(['commande:read', 'commande:write'])]
@@ -79,15 +79,25 @@ class CommandeItem
         return $this;
     }
 
-    public function getVendeur(): ?Opticien
+    public function getVendeur(): ?User
     {
         return $this->vendeur;
     }
 
-    public function setVendeur(?Opticien $vendeur): static
+    public function setVendeur(?User $vendeur): static
     {
         $this->vendeur = $vendeur;
         return $this;
+    }
+
+    #[Groups(['commande:read'])]
+    public function getVendeurName(): ?string
+    {
+        if ($this->vendeur instanceof Opticien) {
+            return $this->vendeur->getNom() . ' ' . $this->vendeur->getPrenom();
+        }
+
+        return $this->vendeur?->getEmail();
     }
 
     public function getQuantite(): ?int

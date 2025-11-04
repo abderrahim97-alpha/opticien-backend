@@ -41,72 +41,72 @@ class Monture
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?float $price = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?string $brand = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?int $stock = null;
 
     #[ORM\Column(type: 'string', nullable: true, enumType: MontureStatus::class)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private MontureStatus $status = MontureStatus::PENDING;
 
     #[ORM\Column]
-    #[Groups(['monture:read'])]
+    #[Groups(['monture:read', 'commande:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['monture:read'])]
+    #[Groups(['monture:read', 'commande:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'montures')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     #[MaxDepth(1)]
     private ?User $owner = null;
 
     #[ORM\Column(type: 'string', nullable: true, enumType: MontureType::class)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?MontureType $type = null;
 
     #[ORM\Column(type: 'string', nullable: true, enumType: MontureGenre::class)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?MontureGenre $genre = null;
 
     #[ORM\Column(type: 'string', nullable: true, enumType: MontureForme::class)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?MontureForme $forme = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?string $couleur = null;
 
     #[ORM\Column(type: 'string', nullable: true, enumType: MontureMateriau::class)]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private ?MontureMateriau $materiau = null;
 
     /**
      * @var Collection<int, Image>
      */
     #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'monture', orphanRemoval: true, cascade: ['persist', 'remove'])]
-    #[Groups(['monture:read', 'monture:write'])]
+    #[Groups(['monture:read', 'monture:write', 'commande:read'])]
     private Collection $images;
 
     public function __construct()
