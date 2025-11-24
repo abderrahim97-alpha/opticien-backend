@@ -143,7 +143,7 @@ class EmailService
     {
         $email = (new Email())
             ->from('abdellabdell.007@gmail.com')
-            ->to('abderrahim.abd1997@gmail.ma') // Ton email admin
+            ->to('abderrahim.abd1997@gmail.com') // Ton email admin
             ->subject("🔔 Nouvelle commande #{$commandeId} à valider")
             ->html("
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>

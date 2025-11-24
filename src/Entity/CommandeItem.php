@@ -29,7 +29,7 @@ class CommandeItem
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['commande:read'])]
+    #[Groups(['commande:read','monture:read'])]
     private ?User $vendeur = null;
 
     #[ORM\Column]
