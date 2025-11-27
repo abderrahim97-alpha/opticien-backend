@@ -230,4 +230,132 @@ class EmailService
 
         $this->mailer->send($email);
     }
+
+    public function sendContactEmail(array $data): void
+    {
+        $userTypeLabels = [
+            'client' => '👤 Client',
+            'opticien' => '👓 Opticien',
+            'autre' => '🔹 Autre'
+        ];
+
+        $userTypeLabel = $userTypeLabels[$data['userType']] ?? $data['userType'];
+
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to('abderrahim.abd1997@gmail.com') // Your admin email
+            ->replyTo($data['email']) // ⭐ This allows you to reply directly
+            ->subject('📧 Contact Marketplace - ' . $data['subject'])
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f4f4f4; padding: 20px;'>
+                <div style='background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>
+                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;'>
+                        <h1 style='margin: 0;'>📧 Nouveau message de contact</h1>
+                        <p style='margin: 10px 0 0 0;'>Reçu via le formulaire de contact</p>
+                    </div>
+                    <div style='padding: 30px;'>
+                        <div style='margin: 15px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #667eea; border-radius: 4px;'>
+                            <strong style='color: #667eea;'>👤 Nom complet:</strong><br>
+                            <span style='color: #333;'>{$data['name']}</span>
+                        </div>
+
+                        <div style='margin: 15px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #667eea; border-radius: 4px;'>
+                            <strong style='color: #667eea;'>📧 Email:</strong><br>
+                            <a href='mailto:{$data['email']}' style='color: #667eea;'>{$data['email']}</a>
+                        </div>
+
+                        <div style='margin: 15px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #667eea; border-radius: 4px;'>
+                            <strong style='color: #667eea;'>📱 Téléphone:</strong><br>
+                            <span style='color: #333;'>{$data['phone']}</span>
+                        </div>
+
+                        <div style='margin: 15px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #667eea; border-radius: 4px;'>
+                            <strong style='color: #667eea;'>👥 Type d'utilisateur:</strong><br>
+                            <span style='display: inline-block; padding: 5px 15px; background: #667eea; color: white; border-radius: 20px; font-size: 12px;'>{$userTypeLabel}</span>
+                        </div>
+
+                        <div style='margin: 15px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #667eea; border-radius: 4px;'>
+                            <strong style='color: #667eea;'>📋 Sujet:</strong><br>
+                            <span style='color: #333;'>{$data['subject']}</span>
+                        </div>
+
+                        <div style='margin: 20px 0; padding: 20px; background: #f9f9f9; border-radius: 5px; border: 1px solid #e0e0e0;'>
+                            <strong style='color: #667eea;'>💬 Message:</strong>
+                            <div style='margin-top: 10px; color: #333;'>" . nl2br(htmlspecialchars($data['message'])) . "</div>
+                        </div>
+
+                        <div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #666; font-size: 14px;'>
+                            <p><strong>💡 Astuce:</strong> Cliquez sur \"Répondre\" pour envoyer votre réponse directement à {$data['email']}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
+
+    /**
+     * Send contact confirmation email to user
+     */
+    public function sendContactConfirmation(string $to, string $name): void
+    {
+        $email = (new Email())
+            ->from('abdellabdell.007@gmail.com')
+            ->to($to)
+            ->subject('✅ Confirmation de votre message - Opti-Marketplace')
+            ->html("
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f4f4f4; padding: 20px;'>
+                <div style='background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>
+                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center;'>
+                        <div style='font-size: 64px; margin-bottom: 15px;'>✅</div>
+                        <h1 style='margin: 0;'>Message bien reçu !</h1>
+                        <p style='margin: 10px 0 0 0;'>Nous vous répondrons très bientôt</p>
+                    </div>
+
+                    <div style='padding: 40px 30px;'>
+                        <p>Bonjour <strong>{$name}</strong>,</p>
+
+                        <p>Nous vous remercions d'avoir pris contact avec nous via notre formulaire de contact.</p>
+
+                        <div style='background: #f0f7ff; border-left: 4px solid #667eea; padding: 20px; margin: 25px 0; border-radius: 4px;'>
+                            <p style='margin: 0;'><strong>✨ Votre message a bien été enregistré</strong></p>
+                            <p style='margin: 10px 0 0 0; color: #666;'>Notre équipe l'examinera avec attention et vous répondra dans les meilleurs délais.</p>
+                        </div>
+
+                        <p><strong>Délai de réponse habituel :</strong> 24-48 heures ouvrées</p>
+
+                        <p>Si votre demande est urgente, n'hésitez pas à nous contacter directement :</p>
+
+                        <div style='background: #fff7f0; border-left: 4px solid #ff9800; padding: 20px; margin: 25px 0; border-radius: 4px;'>
+                            <p style='margin: 0;'><strong>📞 Besoin d'une réponse immédiate ?</strong></p>
+                            <div style='margin-top: 15px;'>
+                                <p style='margin: 5px 0;'>📧 Email : <a href='mailto:contact@opti-maroc.com' style='color: #667eea;'>contact@opti-maroc.com</a></p>
+                                <p style='margin: 5px 0;'>📱 Téléphone : <a href='tel:+2125XXXXXXXX' style='color: #667eea;'>+212 5XX-XXXXXX</a></p>
+                            </div>
+                        </div>
+
+                        <p>Nous sommes impatients d'échanger avec vous !</p>
+
+                        <p style='margin-top: 30px;'>
+                            Cordialement,<br>
+                            <strong>L'équipe Opti-Marketplace</strong>
+                        </p>
+                    </div>
+
+                    <div style='text-align: center; padding: 30px; background: #f9f9f9; border-top: 1px solid #e0e0e0; color: #666; font-size: 14px;'>
+                        <p><strong>Opti-Marketplace Maroc</strong></p>
+                        <p>Oujda, Maroc</p>
+                        <p>📧 <a href='mailto:contact@opti-maroc.com' style='color: #667eea;'>contact@opti-maroc.com</a> | 📱 +212 5XX-XXXXXX</p>
+                        <p style='margin-top: 20px; font-size: 12px; color: #999;'>
+                            Vous recevez cet email en confirmation de votre demande de contact.<br>
+                            Merci de ne pas répondre directement à cet email.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        ");
+
+        $this->mailer->send($email);
+    }
 }
